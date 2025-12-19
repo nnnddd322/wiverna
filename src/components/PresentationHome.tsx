@@ -27,7 +27,7 @@ export function PresentationHome({ discipline, onBack, onSelectPresentation }: P
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {discipline.presentations.map((presentation, index) => (
+          {discipline.presentations.filter(p => !p.hidden).map((presentation, index) => (
             <button
               key={index}
               onClick={() => onSelectPresentation(presentation)}

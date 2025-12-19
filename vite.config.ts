@@ -5,7 +5,7 @@
   import { viteSingleFile } from 'vite-plugin-singlefile';
 
   export default defineConfig({
-     base: '/wiverna/',
+    base: './',
     plugins: [react(), viteSingleFile()],
     resolve: {
       extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],

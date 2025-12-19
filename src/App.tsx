@@ -29,7 +29,7 @@ export default function App() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
       {!selectedDiscipline ? (
         <DisciplineSelector 
-          disciplines={disciplines}
+          disciplines={disciplines.filter(d => !d.hidden)}
           onSelect={handleSelectDiscipline}
         />
       ) : !selectedPresentation ? (
