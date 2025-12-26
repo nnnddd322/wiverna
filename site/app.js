@@ -144,15 +144,46 @@ function openDiscipline(disciplineId) {
     
     document.getElementById('presentations-title').textContent = currentDiscipline.name;
     
-    // Показываем/скрываем переключатель в зависимости от наличия лекций
+    // Показываем/скрываем переключатель в зависимости от наличия лекций или PDF
     const toggle = document.getElementById('view-toggle');
+    const toggleLectures = document.getElementById('toggle-lectures');
+    const togglePdfs = document.getElementById('toggle-pdfs');
     const hasLectures = lecturesData && lecturesData[currentDiscipline.id] && lecturesData[currentDiscipline.id].lectures;
+    const hasPdfs = currentDiscipline.pdfFiles && currentDiscipline.pdfFiles.length > 0;
     
-    if (hasLectures) {
+    // ID дисциплин 1-8 (для которых нужно скрыть кнопку "Лекции" и показать "PDF" как "Лекции")
+    const disciplines1to8 = ['pedagogy', 'learning-theory', 'educational-methodology', 'correctional-pedagogy', 
+                            'developmental-psychology', 'special-psychology', 'educational-psychology'];
+    const isDiscipline1to8 = disciplines1to8.includes(currentDiscipline.id);
+    
+    // Для дисциплин 1-8 скрываем кнопку "Лекции" (текстовые лекции) и показываем кнопку PDF как "Лекции"
+    if (toggleLectures) {
+        if (isDiscipline1to8) {
+            toggleLectures.style.display = 'none'; // Скрываем кнопку текстовых лекций
+        } else {
+            toggleLectures.style.display = hasLectures ? 'inline-flex' : 'none';
+        }
+    }
+    
+    // Показываем/скрываем кнопку PDF в зависимости от наличия PDF файлов
+    if (togglePdfs) {
+        if (hasPdfs) {
+            togglePdfs.style.display = 'inline-flex';
+        } else {
+            togglePdfs.style.display = 'none';
+        }
+    }
+    
+    if (hasLectures || hasPdfs) {
         toggle.style.display = 'flex';
         // По умолчанию показываем презентации
         document.getElementById('toggle-presentations').classList.add('active');
-        document.getElementById('toggle-lectures').classList.remove('active');
+        if (toggleLectures && !isDiscipline1to8) {
+            toggleLectures.classList.remove('active');
+        }
+        if (togglePdfs) {
+            togglePdfs.classList.remove('active');
+        }
     } else {
         toggle.style.display = 'none';
     }
@@ -164,15 +195,40 @@ function openDiscipline(disciplineId) {
 // ===== ПОКАЗАТЬ ПРЕЗЕНТАЦИИ =====
 function showPresentationsView() {
     document.getElementById('toggle-presentations').classList.add('active');
-    document.getElementById('toggle-lectures').classList.remove('active');
+    const toggleLectures = document.getElementById('toggle-lectures');
+    if (toggleLectures && toggleLectures.style.display !== 'none') {
+        toggleLectures.classList.remove('active');
+    }
+    const togglePdfs = document.getElementById('toggle-pdfs');
+    if (togglePdfs) {
+        togglePdfs.classList.remove('active');
+    }
     renderPresentationsOnly();
 }
 
 // ===== ПОКАЗАТЬ ЛЕКЦИИ =====
 function showLecturesView() {
     document.getElementById('toggle-presentations').classList.remove('active');
-    document.getElementById('toggle-lectures').classList.add('active');
+    const toggleLectures = document.getElementById('toggle-lectures');
+    if (toggleLectures && toggleLectures.style.display !== 'none') {
+        toggleLectures.classList.add('active');
+    }
+    const togglePdfs = document.getElementById('toggle-pdfs');
+    if (togglePdfs) {
+        togglePdfs.classList.remove('active');
+    }
     renderLecturesOnly();
+}
+
+// ===== ПОКАЗАТЬ PDF (переименовано в "Лекции" для дисциплин 1-8) =====
+function showPdfsView() {
+    document.getElementById('toggle-presentations').classList.remove('active');
+    const toggleLectures = document.getElementById('toggle-lectures');
+    if (toggleLectures && toggleLectures.style.display !== 'none') {
+        toggleLectures.classList.remove('active');
+    }
+    document.getElementById('toggle-pdfs').classList.add('active');
+    renderPdfsOnly();
 }
 
 // ===== РЕНДЕР ТОЛЬКО ПРЕЗЕНТАЦИЙ =====
@@ -229,6 +285,43 @@ function renderLecturesOnly() {
         card.addEventListener('click', function() { openLecture(lecture.id); });
         grid.appendChild(card);
     });
+}
+
+// ===== РЕНДЕР ТОЛЬКО PDF =====
+function renderPdfsOnly() {
+    const grid = document.getElementById('presentations-grid');
+    grid.innerHTML = '';
+    
+    if (!currentDiscipline.pdfFiles || currentDiscipline.pdfFiles.length === 0) {
+        grid.innerHTML = '<div class="empty-state"><p>PDF файлы для этой дисциплины пока не добавлены</p></div>';
+        return;
+    }
+    
+    currentDiscipline.pdfFiles.forEach((pdf, index) => {
+        const card = document.createElement('div');
+        card.className = 'presentation-card pdf-card';
+        card.style.animationDelay = `${index * 0.1}s`;
+        card.innerHTML = `
+            <div class="card-icon">
+                <i class="fas fa-file-pdf"></i>
+            </div>
+            <h3 class="card-title">${pdf.title || pdf.fileName}</h3>
+            <div class="card-meta">
+                <span class="meta-item">
+                    <i class="fas fa-file-pdf"></i>
+                    PDF документ
+                </span>
+            </div>
+        `;
+        card.addEventListener('click', function() { openPdf(pdf.path, pdf.fileName); });
+        grid.appendChild(card);
+    });
+}
+
+// ===== ОТКРЫТИЕ PDF =====
+function openPdf(pdfPath, fileName) {
+    // Открываем PDF в новой вкладке
+    window.open(pdfPath, '_blank');
 }
 
 // ===== ОТКРЫТИЕ ПРЕЗЕНТАЦИИ =====
