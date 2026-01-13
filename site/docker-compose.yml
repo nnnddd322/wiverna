@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  # Frontend application
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
+      - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
+      - VITE_CONVERTER_URL=http://converter:8787
+    volumes:
+      - ./src:/app/src
+      - ./public:/app/public
+    depends_on:
+      - converter
+    networks:
+      - app-network
+
+  # Converter service
+  converter:
+    build:
+      context: ./converter
+      dockerfile: Dockerfile
+    ports:
+      - "8787:8787"
+    env_file:
+      - ./converter/.env
+    volumes:
+      - converter-temp:/tmp/converter
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  converter-temp:
